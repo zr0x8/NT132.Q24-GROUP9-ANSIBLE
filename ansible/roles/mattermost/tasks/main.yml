@@ -11,6 +11,15 @@
     system: yes
     create_home: no
 
+- name: Remove conflicting containerd packages
+  apt:
+    name:
+      - containerd
+      - containerd.io
+      - docker-ce
+      - docker-ce-cli
+    state: absent
+
 - name: Install Docker and dependencies
   apt:
     name:
