@@ -20,6 +20,11 @@
       - docker-ce-cli
     state: absent
 
+- name: Remove leftover containerd config
+  file:
+    path: /etc/containerd/config.toml
+    state: absent
+
 - name: Install Docker and dependencies
   apt:
     name:
@@ -28,11 +33,14 @@
     state: present
     update_cache: yes
 
-- name: Ensure Docker is running and enabled
+- name: Ensure Docker and Containerd are running
   systemd:
-    name: docker
+    name: "{{ item }}"
     state: restarted
     enabled: yes
+  loop:
+    - containerd
+    - docker
 
 - name: Create mattermost directories
   file:
