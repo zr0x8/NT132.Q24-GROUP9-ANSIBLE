@@ -11,8 +11,7 @@ server {
 }
 
 server {
-    listen {{ nginx_port }} ssl default_server;
-    http2 on;
+    listen {{ nginx_port }} ssl http2 default_server;
     server_name {{ nginx_server_name }};
 
     ssl_certificate {{ nginx_ssl_certificate_path }};
