@@ -1,0 +1,30 @@
+---
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+
+- name: Configure Nginx for Mattermost
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/mattermost
+  notify: Reload Nginx
+
+- name: Enable Mattermost site
+  file:
+    src: /etc/nginx/sites-available/mattermost
+    dest: /etc/nginx/sites-enabled/mattermost
+    state: link
+  notify: Reload Nginx
+
+- name: Remove default Nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Reload Nginx
+
+- name: Ensure Nginx is running and enabled
+  systemd:
+    name: nginx
+    state: started
+    enabled: yes

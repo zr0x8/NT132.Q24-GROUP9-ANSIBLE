@@ -1,0 +1,21 @@
+---
+- name: setup db tier
+  hosts: db
+  become: yes
+  roles:
+    - common
+    - postgresql
+
+- name: setup app tier
+  hosts: app
+  become: yes
+  roles:
+    - common
+    - mattermost
+
+- name: setup web tier
+  hosts: web
+  become: yes
+  roles:
+    - common
+    - nginx

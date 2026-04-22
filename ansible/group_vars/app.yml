@@ -1,0 +1,4 @@
+---
+mattermost_port: 3636
+mattermost_user: "mattermost"
+mattermost_group: "mattermost"

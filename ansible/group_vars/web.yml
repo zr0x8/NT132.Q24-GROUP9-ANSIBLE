@@ -1,0 +1,5 @@
+---
+nginx_port: 443
+nginx_server_name: "{{ web_host }}"
+nginx_ssl_certificate_path: "/etc/ssl/certs/mattermost.crt"
+nginx_ssl_certificate_key_path: "/etc/ssl/private/mattermost.key"

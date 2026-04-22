@@ -1,0 +1,6 @@
+---
+mattermost_version: "9.11.0"
+artifact_path: "/tmp/mattermost.tar.gz"
+mattermost_deploy_dir: "/opt/mattermost"
+web_host: "mattermost.example.com"
+db_host: "{{ secret_db_ip }}"

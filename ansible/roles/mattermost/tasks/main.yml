@@ -1,0 +1,77 @@
+---
+- name: Create mattermost group
+  group:
+    name: "{{ mattermost_group }}"
+    system: yes
+
+- name: Create mattermost user
+  user:
+    name: "{{ mattermost_user }}"
+    group: "{{ mattermost_group }}"
+    system: yes
+    create_home: no
+
+- name: Create mattermost directory
+  file:
+    path: "{{ mattermost_deploy_dir }}"
+    state: directory
+    owner: "{{ mattermost_user }}"
+    group: "{{ mattermost_group }}"
+    mode: '0755'
+
+- name: Extract Mattermost artifact
+  unarchive:
+    src: "{{ artifact_path }}"
+    dest: "/opt"
+    remote_src: no
+    owner: "{{ mattermost_user }}"
+    group: "{{ mattermost_group }}"
+  when: artifact_path is defined
+
+- name: Ensure data directory exists
+  file:
+    path: "{{ mattermost_deploy_dir }}/data"
+    state: directory
+    owner: "{{ mattermost_user }}"
+    group: "{{ mattermost_group }}"
+
+- name: Configure Mattermost
+  template:
+    src: config.json.j2
+    dest: "{{ mattermost_deploy_dir }}/config/config.json"
+    owner: "{{ mattermost_user }}"
+    group: "{{ mattermost_group }}"
+  notify: Restart Mattermost
+
+- name: Create systemd service for Mattermost
+  copy:
+    dest: /lib/systemd/system/mattermost.service
+    content: |
+      [Unit]
+      Description=Mattermost
+      After=network.target
+      After=postgresql.service
+      BindsTo=postgresql.service
+
+      [Service]
+      Type=notify
+      ExecStart={{ mattermost_deploy_dir }}/bin/mattermost
+      TimeoutStartSec=3600
+      KillMode=mixed
+      Restart=always
+      RestartSec=10
+      WorkingDirectory={{ mattermost_deploy_dir }}
+      User={{ mattermost_user }}
+      Group={{ mattermost_group }}
+      LimitNOFILE=49152
+
+      [Install]
+      WantedBy=multi-user.target
+  notify: Restart Mattermost
+
+- name: Ensure Mattermost is running and enabled
+  systemd:
+    name: mattermost
+    state: started
+    enabled: yes
+    daemon_reload: yes

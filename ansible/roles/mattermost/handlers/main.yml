@@ -1,0 +1,5 @@
+---
+- name: Restart Mattermost
+  systemd:
+    name: mattermost
+    state: restarted
