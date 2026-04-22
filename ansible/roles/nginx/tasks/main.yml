@@ -16,6 +16,10 @@
     dest: /etc/nginx/sites-available/mattermost
   notify: Reload Nginx
 
+- name: Validate Nginx config
+  command: nginx -t
+  notify: Reload Nginx
+
 - name: Enable Mattermost site
   file:
     src: /etc/nginx/sites-available/mattermost
@@ -34,3 +38,4 @@
     name: nginx
     state: started
     enabled: yes
+    daemon_reload: yes
