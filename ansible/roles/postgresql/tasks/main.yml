@@ -16,6 +16,7 @@
 - name: Create Mattermost database
   postgresql_db:
     name: "{{ db_name }}"
+    port: "{{ postgres_port }}"
     state: present
   become: yes
   become_user: postgres
@@ -25,6 +26,7 @@
     name: "{{ db_user }}"
     password: "{{ db_password }}"
     db: "{{ db_name }}"
+    port: "{{ postgres_port }}"
     priv: ALL
     state: present
   become: yes
