@@ -88,7 +88,7 @@
     state: started
     restart_policy: always
     ports:
-      - "{{ mattermost_port }}:{{ mattermost_port }}"
+      - "{{ mattermost_port }}:8065"
     volumes:
       - "{{ mattermost_deploy_dir }}/config:/mattermost/config"
       - "{{ mattermost_deploy_dir }}/data:/mattermost/data"
@@ -97,3 +97,8 @@
       - "{{ mattermost_deploy_dir }}/client/plugins:/mattermost/client/plugins"
     user: "{{ mattermost_user }}:{{ mattermost_group }}"
 
+- name: Allow incoming traffic on Mattermost port
+  ufw:
+    rule: allow
+    port: "{{ mattermost_port }}"
+    proto: tcp
