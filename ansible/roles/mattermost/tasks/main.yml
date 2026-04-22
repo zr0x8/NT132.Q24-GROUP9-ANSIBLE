@@ -11,29 +11,34 @@
     system: yes
     create_home: no
 
-- name: Create mattermost directory
+- name: Install Docker and dependencies
+  apt:
+    name:
+      - docker.io
+      - python3-docker
+    state: present
+    update_cache: yes
+
+- name: Ensure Docker is running and enabled
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Create mattermost directories
   file:
-    path: "{{ mattermost_deploy_dir }}"
+    path: "{{ item }}"
     state: directory
     owner: "{{ mattermost_user }}"
     group: "{{ mattermost_group }}"
     mode: '0755'
-
-- name: Extract Mattermost artifact
-  unarchive:
-    src: "{{ artifact_path }}"
-    dest: "/opt"
-    remote_src: no
-    owner: "{{ mattermost_user }}"
-    group: "{{ mattermost_group }}"
-  when: artifact_path is defined
-
-- name: Ensure data directory exists
-  file:
-    path: "{{ mattermost_deploy_dir }}/data"
-    state: directory
-    owner: "{{ mattermost_user }}"
-    group: "{{ mattermost_group }}"
+  loop:
+    - "{{ mattermost_deploy_dir }}"
+    - "{{ mattermost_deploy_dir }}/data"
+    - "{{ mattermost_deploy_dir }}/config"
+    - "{{ mattermost_deploy_dir }}/logs"
+    - "{{ mattermost_deploy_dir }}/plugins"
+    - "{{ mattermost_deploy_dir }}/client/plugins"
 
 - name: Configure Mattermost
   template:
@@ -41,37 +46,26 @@
     dest: "{{ mattermost_deploy_dir }}/config/config.json"
     owner: "{{ mattermost_user }}"
     group: "{{ mattermost_group }}"
-  notify: Restart Mattermost
+  notify: Restart Mattermost Container
 
-- name: Create systemd service for Mattermost
-  copy:
-    dest: /lib/systemd/system/mattermost.service
-    content: |
-      [Unit]
-      Description=Mattermost
-      After=network.target
-      After=postgresql.service
-      BindsTo=postgresql.service
+- name: Pull Mattermost Docker image
+  community.docker.docker_image:
+    name: "{{ mattermost_docker_image }}:{{ image_tag | default('latest') }}"
+    source: pull
 
-      [Service]
-      Type=notify
-      ExecStart={{ mattermost_deploy_dir }}/bin/mattermost
-      TimeoutStartSec=3600
-      KillMode=mixed
-      Restart=always
-      RestartSec=10
-      WorkingDirectory={{ mattermost_deploy_dir }}
-      User={{ mattermost_user }}
-      Group={{ mattermost_group }}
-      LimitNOFILE=49152
-
-      [Install]
-      WantedBy=multi-user.target
-  notify: Restart Mattermost
-
-- name: Ensure Mattermost is running and enabled
-  systemd:
+- name: Run Mattermost container
+  community.docker.docker_container:
     name: mattermost
+    image: "{{ mattermost_docker_image }}:{{ image_tag | default('latest') }}"
     state: started
-    enabled: yes
-    daemon_reload: yes
+    restart_policy: always
+    ports:
+      - "{{ mattermost_port }}:{{ mattermost_port }}"
+    volumes:
+      - "{{ mattermost_deploy_dir }}/config:/mattermost/config"
+      - "{{ mattermost_deploy_dir }}/data:/mattermost/data"
+      - "{{ mattermost_deploy_dir }}/logs:/mattermost/logs"
+      - "{{ mattermost_deploy_dir }}/plugins:/mattermost/plugins"
+      - "{{ mattermost_deploy_dir }}/client/plugins:/mattermost/client/plugins"
+    user: "{{ mattermost_user }}:{{ mattermost_group }}"
+

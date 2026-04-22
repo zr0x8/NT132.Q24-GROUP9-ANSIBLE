@@ -6,7 +6,7 @@ pipeline {
             genericVariables: [
                 [key: 'ACTION', value: '$.action']
             ],
-            causeString: 'Triggered by Webhook from Repo A',
+            causeString: 'Triggered by Webhook from mattermost fork repo',
             token: 'mattermost-webhook'
         )
     }
@@ -18,27 +18,21 @@ pipeline {
     }
 
     stages {
-        stage('Fetch Latest Artifact URL') {
+        stage('Fetch Latest Tag') {
             steps {
                 script {
-                    def getUrl = """
+                    def getTag = """
                         curl -s https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest | \
-                        jq -r '.assets[] | select(.name | contains("linux-amd64.tar.gz")) | .browser_download_url'
+                        jq -r '.tag_name'
                     """.trim()
 
-                    env.LATEST_URL = sh(script: getUrl, returnStdout: true).trim()
+                    env.LATEST_TAG = sh(script: getTag, returnStdout: true).trim()
 
-                    if (env.LATEST_URL == "null" || env.LATEST_URL == "") {
-                        error "Không tìm thấy file artifact phù hợp trên GitHub Release!"
+                    if (env.LATEST_TAG == "null" || env.LATEST_TAG == "") {
+                        error "Không tìm thấy release tag phù hợp trên GitHub!"
                     }
-                    echo "Found latest artifact: ${env.LATEST_URL}"
+                    echo "Found latest tag: ${env.LATEST_TAG}"
                 }
-            }
-        }
-
-        stage('Pull artifact') {
-            steps {
-                sh "wget -O mattermost.tar.gz ${env.LATEST_URL}"
             }
         }
 
@@ -46,8 +40,7 @@ pipeline {
             steps {
                 sh '''
                     ansible-playbook -i ansible/inventory/hosts.ini \
-                        -e "artifact_path=${WORKSPACE}/mattermost.tar.gz" \
-                        -e "deploy_dir=${DEPLOY_DIR}" \
+                        -e "image_tag=${LATEST_TAG}" \
                         ansible/site.yml
                 '''
             }

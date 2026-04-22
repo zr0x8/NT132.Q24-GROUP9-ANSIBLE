@@ -1,5 +1,6 @@
 ---
-- name: Restart Mattermost
-  systemd:
+- name: Restart Mattermost Container
+  community.docker.docker_container:
     name: mattermost
-    state: restarted
+    state: started
+    restart: yes
