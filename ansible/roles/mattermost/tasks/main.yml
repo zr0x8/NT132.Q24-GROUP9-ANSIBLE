@@ -31,7 +31,7 @@
 - name: Ensure Docker is running and enabled
   systemd:
     name: docker
-    state: started
+    state: restarted
     enabled: yes
 
 - name: Create mattermost directories
