@@ -15,6 +15,7 @@ pipeline {
         REPO_OWNER = "zr0x8"
         REPO_NAME  = "mattermost"
         DEPLOY_DIR = "/opt/mattermost"
+        ANSIBLE_HOST_KEY_CHECKING = "False"
     }
 
     stages {
