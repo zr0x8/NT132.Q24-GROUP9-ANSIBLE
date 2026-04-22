@@ -38,11 +38,15 @@ pipeline {
 
         stage('Deploy via Ansible') {
             steps {
-                sh '''
-                    ansible-playbook -i ansible/inventory/hosts.ini \
-                        -e "image_tag=${LATEST_TAG}" \
-                        ansible/site.yml
-                '''
+                withCredentials([string(credentialsId: 'ansible-vault-pass', variable: 'VAULT_PASS')]) {
+                    sh '''
+                        echo "$VAULT_PASS" > .vault_pass.txt
+                        ansible-playbook -i ansible/inventory/hosts.ini \
+                            --vault-password-file .vault_pass.txt \
+                            -e "image_tag=${LATEST_TAG}" \
+                            ansible/site.yml
+                    '''
+                }
             }
         }
     }
