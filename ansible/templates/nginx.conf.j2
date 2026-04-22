@@ -1,5 +1,5 @@
 upstream backend {
-    server {{ groups['app'][0] }}:{{ mattermost_port }};
+    server {{ hostvars[groups['app'][0]]['ansible_host'] }}:{{ mattermost_port }};
     keepalive 32;
 }
 
