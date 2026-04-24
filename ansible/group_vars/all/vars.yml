@@ -2,5 +2,5 @@
 mattermost_version: "9.11.0"
 mattermost_docker_image: "ghcr.io/zr0x8/mattermost"
 mattermost_deploy_dir: "/opt/mattermost"
-web_host: "mattermost.example.com"
+web_host: "{{ hostvars[groups['web'][0]]['web_public_ip'] }}"
 db_host: "{{ secret_db_ip }}"

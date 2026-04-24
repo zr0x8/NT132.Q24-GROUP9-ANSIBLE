@@ -1,4 +1,17 @@
 ---
+- name: acquiring web's public ip
+  hosts: web
+  gather_facts: false
+  tasks:
+    - name: Fetch web's Public IP from ipify
+      uri:
+        url: https://api.ipify.org
+        return_content: yes
+      register: web_public_ip_response
+    - name: Set web's public IP fact
+      set_fact:
+        web_public_ip: "{{ web_public_ip_response.content }}"
+
 - name: setup db tier
   hosts: db
   become: yes
