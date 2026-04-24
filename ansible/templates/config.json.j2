@@ -3,6 +3,10 @@
     "SiteURL": "https://{{ web_host }}",
     "ListenAddress": ":{{ mattermost_port }}"
   },
+  "TeamSettings": {
+    "EnableOpenServer": true,
+    "EnableUserCreation": true
+  },
   "SqlSettings": {
     "DriverName": "postgres",
     "DataSource": "postgres://{{ db_user }}:{{ db_password }}@{{ db_host }}:{{ postgres_port }}/{{ db_name }}?sslmode=disable"

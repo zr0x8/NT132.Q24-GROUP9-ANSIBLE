@@ -57,8 +57,8 @@
   file:
     path: "{{ item }}"
     state: directory
-    owner: "{{ mattermost_user }}"
-    group: "{{ mattermost_group }}"
+    owner: "2000"
+    group: "2000"
     mode: '0755'
   loop:
     - "{{ mattermost_deploy_dir }}"
@@ -68,12 +68,15 @@
     - "{{ mattermost_deploy_dir }}/plugins"
     - "{{ mattermost_deploy_dir }}/client/plugins"
 
+- name: Ensure correct ownership on mattermost directories
+  command: chown -R 2000:2000 {{ mattermost_deploy_dir }}
+
 - name: Configure Mattermost
   template:
     src: config.json.j2
     dest: "{{ mattermost_deploy_dir }}/config/config.json"
-    owner: "{{ mattermost_user }}"
-    group: "{{ mattermost_group }}"
+    owner: "2000"
+    group: "2000"
   notify: Restart Mattermost Container
 
 - name: Pull Mattermost Docker image
@@ -88,14 +91,14 @@
     state: started
     restart_policy: always
     ports:
-      - "{{ mattermost_port }}:8065"
+      - "{{ mattermost_port }}:{{ mattermost_port }}"
     volumes:
       - "{{ mattermost_deploy_dir }}/config:/mattermost/config"
       - "{{ mattermost_deploy_dir }}/data:/mattermost/data"
       - "{{ mattermost_deploy_dir }}/logs:/mattermost/logs"
       - "{{ mattermost_deploy_dir }}/plugins:/mattermost/plugins"
       - "{{ mattermost_deploy_dir }}/client/plugins:/mattermost/client/plugins"
-    user: "{{ mattermost_user }}:{{ mattermost_group }}"
+    user: "2000:2000"
 
 - name: Allow incoming traffic on Mattermost port
   ufw:
