@@ -18,6 +18,7 @@
   gather_facts: yes
   vars:
     zabbix_server_ip: "{{ hostvars[groups['web'][0]]['zabbix_server_ip_runtime'] | default(hostvars[groups['web'][0]]['ansible_host']) }}"
+    zabbix_agent_server_allowlist: "{{ zabbix_server_ip }}{{ ',127.0.0.1,172.17.0.0/16' if inventory_hostname in groups['web'] else '' }}"
   tasks:
     - name: Apply zabbix agent role
       import_role:
