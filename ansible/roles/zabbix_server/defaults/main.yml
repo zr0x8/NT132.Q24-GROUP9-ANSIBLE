@@ -1,0 +1,11 @@
+---
+zabbix_deploy_dir: "/opt/zabbix"
+zabbix_web_port: "{{ secret_zabbix_web_port | default(8088) }}"
+zabbix_server_port: "{{ secret_zabbix_server_port | default(10051) }}"
+zabbix_db_name: "{{ secret_zabbix_db_name | default('zabbix') }}"
+zabbix_db_user: "{{ secret_zabbix_db_user | default('zabbix') }}"
+zabbix_db_password: "{{ secret_zabbix_db_password | default('') }}"
+zabbix_timezone: "Asia/Ho_Chi_Minh"
+zabbix_server_image: "zabbix/zabbix-server-pgsql:alpine-7.0-latest"
+zabbix_web_image: "zabbix/zabbix-web-nginx-pgsql:alpine-7.0-latest"
+zabbix_postgres_image: "postgres:16"

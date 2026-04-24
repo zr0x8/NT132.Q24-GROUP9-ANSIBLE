@@ -1,0 +1,54 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install Docker engine and compose plugin
+  apt:
+    name:
+      - docker.io
+      - docker-compose-plugin
+      - python3-docker
+    state: present
+
+- name: Ensure Docker service is running
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Validate zabbix DB password is provided via secret vars
+  assert:
+    that:
+      - zabbix_db_password | length > 0
+      - zabbix_db_password != 'CHANGE_ME_ZABBIX_DB_PASSWORD'
+    fail_msg: "Please set secret_zabbix_db_password in ansible/group_vars/all/secrets_zabbix.yml (and encrypt with Vault)."
+
+- name: Create zabbix deploy directory
+  file:
+    path: "{{ zabbix_deploy_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Render zabbix docker compose file
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ zabbix_deploy_dir }}/docker-compose.yml"
+    mode: '0644'
+
+- name: Validate docker compose configuration
+  command: docker compose config
+  args:
+    chdir: "{{ zabbix_deploy_dir }}"
+
+- name: Start zabbix stack
+  command: docker compose up -d
+  args:
+    chdir: "{{ zabbix_deploy_dir }}"
+
+- name: Allow incoming traffic on Zabbix web port
+  ufw:
+    rule: allow
+    port: "{{ zabbix_web_port }}"
+    proto: tcp

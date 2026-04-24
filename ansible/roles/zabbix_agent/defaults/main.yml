@@ -1,0 +1,3 @@
+---
+zabbix_agent_hostname: "{{ inventory_hostname }}"
+zabbix_agent_repo_pkg: "https://repo.zabbix.com/zabbix/7.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest_7.0+ubuntu22.04_all.deb"

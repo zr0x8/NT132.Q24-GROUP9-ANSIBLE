@@ -1,0 +1,39 @@
+---
+- name: Deploy Zabbix server on control node
+  hosts: localhost
+  connection: local
+  become: yes
+  gather_facts: yes
+  tasks:
+    - name: Apply zabbix server role
+      import_role:
+        name: ../roles/zabbix_server
+
+    - name: Save runtime zabbix server ip for agent rollout
+      set_fact:
+        zabbix_server_ip_runtime: "{{ ansible_default_ipv4.address }}"
+
+- name: Deploy Zabbix agent on managed nodes
+  hosts: managed
+  become: yes
+  gather_facts: yes
+  vars:
+    zabbix_server_ip: "{{ hostvars['localhost']['zabbix_server_ip_runtime'] | default('127.0.0.1') }}"
+  tasks:
+    - name: Apply zabbix agent role
+      import_role:
+        name: ../roles/zabbix_agent
+
+- name: Configure web VM subpath for Zabbix UI
+  hosts: web
+  become: yes
+  gather_facts: yes
+  vars:
+    enable_zabbix_monitor_subpath: true
+    zabbix_monitor_subpath: "/zabbix_monitor"
+    zabbix_monitor_upstream_host: "{{ hostvars['localhost']['zabbix_server_ip_runtime'] }}"
+    zabbix_monitor_upstream_port: "{{ zabbix_web_port }}"
+  tasks:
+    - name: Apply nginx role with zabbix subpath enabled
+      import_role:
+        name: ../roles/nginx

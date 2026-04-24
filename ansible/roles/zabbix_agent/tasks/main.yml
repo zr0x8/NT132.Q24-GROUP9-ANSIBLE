@@ -1,0 +1,40 @@
+---
+- name: Download zabbix release package
+  get_url:
+    url: "{{ zabbix_agent_repo_pkg }}"
+    dest: /tmp/zabbix-release.deb
+    mode: '0644'
+
+- name: Install zabbix release package
+  apt:
+    deb: /tmp/zabbix-release.deb
+
+- name: Install zabbix agent2
+  apt:
+    name: zabbix-agent2
+    state: present
+    update_cache: yes
+
+- name: Configure zabbix passive server endpoint
+  lineinfile:
+    path: /etc/zabbix/zabbix_agent2.conf
+    regexp: '^Server='
+    line: "Server={{ zabbix_server_ip }}"
+
+- name: Configure zabbix active server endpoint
+  lineinfile:
+    path: /etc/zabbix/zabbix_agent2.conf
+    regexp: '^ServerActive='
+    line: "ServerActive={{ zabbix_server_ip }}"
+
+- name: Configure zabbix agent hostname
+  lineinfile:
+    path: /etc/zabbix/zabbix_agent2.conf
+    regexp: '^Hostname='
+    line: "Hostname={{ zabbix_agent_hostname }}"
+
+- name: Ensure zabbix agent service is running
+  systemd:
+    name: zabbix-agent2
+    state: restarted
+    enabled: yes
