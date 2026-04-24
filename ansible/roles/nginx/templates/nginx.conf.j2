@@ -1,0 +1,89 @@
+upstream backend {
+    server {{ hostvars[groups['app'][0]]['ansible_host'] }}:{{ mattermost_port }};
+    keepalive 32;
+}
+
+{% if enable_zabbix_monitor_subpath | default(false) %}
+upstream zabbix_monitor_backend {
+    server {{ zabbix_monitor_upstream_host }}:{{ zabbix_monitor_upstream_port }};
+    keepalive 16;
+}
+{% endif %}
+
+server {
+    listen 80 default_server;
+    server_name {{ nginx_server_name }};
+
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen {{ nginx_port }} ssl http2 default_server;
+    server_name {{ nginx_server_name }};
+
+    ssl_certificate {{ nginx_ssl_certificate_path }};
+    ssl_certificate_key {{ nginx_ssl_certificate_key_path }};
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:10m;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+
+    location ~ /api/v[0-9]+/(users/)?websocket$ {
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        client_max_body_size 50M;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Frame-Options SAMEORIGIN;
+        proxy_buffers 256 16k;
+        proxy_buffer_size 16k;
+        client_body_timeout 60;
+        send_timeout 300;
+        lingering_timeout 5;
+        proxy_connect_timeout 90;
+        proxy_send_timeout 300;
+        proxy_read_timeout 90s;
+        proxy_http_version 1.1;
+        proxy_pass http://backend;
+    }
+
+    location / {
+        client_max_body_size 50M;
+        proxy_set_header Connection "";
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Frame-Options SAMEORIGIN;
+        proxy_buffers 256 16k;
+        proxy_buffer_size 16k;
+        proxy_read_timeout 600s;
+        proxy_http_version 1.1;
+        proxy_pass http://backend;
+    }
+
+{% if enable_zabbix_monitor_subpath | default(false) %}
+    location = {{ zabbix_monitor_subpath }} {
+        return 301 {{ zabbix_monitor_subpath }}/;
+    }
+
+    location {{ zabbix_monitor_subpath }}/ {
+        rewrite ^{{ zabbix_monitor_subpath }}/(.*)$ /$1 break;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+        proxy_pass http://zabbix_monitor_backend;
+        proxy_redirect / {{ zabbix_monitor_subpath }}/;
+
+        sub_filter_types text/html text/css application/javascript;
+        sub_filter_once off;
+        sub_filter 'href="/' 'href="{{ zabbix_monitor_subpath }}/';
+        sub_filter 'src="/' 'src="{{ zabbix_monitor_subpath }}/';
+        sub_filter 'action="/' 'action="{{ zabbix_monitor_subpath }}/';
+    }
+{% endif %}
+}
