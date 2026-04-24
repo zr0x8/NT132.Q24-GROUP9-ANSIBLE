@@ -35,7 +35,7 @@
     enable_zabbix_monitor_subpath: true
     zabbix_monitor_subpath: "/zabbix_monitor"
     zabbix_monitor_upstream_host: "127.0.0.1"
-    zabbix_monitor_upstream_port: "{{ zabbix_web_port }}"
+    zabbix_monitor_upstream_port: "{{ secret_zabbix_monitor_upstream_port | default(secret_zabbix_web_port | default(8088)) }}"
   tasks:
     - name: Apply nginx role with zabbix subpath enabled
       import_role:
