@@ -5,7 +5,7 @@ pipeline {
         REPO_URL = 'https://github.com/zr0x8/NT132.Q24-GROUP9-ANSIBLE.git'
         BRANCH = 'main'
         INVENTORY_PATH = 'ansible/inventory/hosts.ini'
-        VAULT_CREDENTIALS_ID = 'ansible-vault-password'
+        VAULT_CREDENTIALS_ID = 'ansible-vault-pass'
         ANSIBLE_FORCE_COLOR = 'true'
         PLAYBOOK_MATTERMOST = 'ansible/site.yml'
         PLAYBOOK_ZABBIX = 'ansible/playbooks/deploy_zabbix.yml'
