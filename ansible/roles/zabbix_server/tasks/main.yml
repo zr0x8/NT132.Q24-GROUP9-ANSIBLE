@@ -4,13 +4,24 @@
     update_cache: yes
     cache_valid_time: 3600
 
-- name: Install Docker engine and compose plugin
+- name: Check whether Docker CLI already exists
+  command: docker --version
+  register: docker_cli_check
+  changed_when: false
+  failed_when: false
+
+- name: Install Docker compose plugin and python docker SDK
   apt:
     name:
-      - docker.io
       - docker-compose-plugin
       - python3-docker
     state: present
+
+- name: Install Docker engine when missing
+  apt:
+    name: docker.io
+    state: present
+  when: docker_cli_check.rc != 0
 
 - name: Ensure Docker service is running
   systemd:
