@@ -28,6 +28,10 @@
   become: yes
   gather_facts: yes
   vars:
+    nginx_port: 443
+    nginx_server_name: "{{ web_host | default(ansible_host) }}"
+    nginx_ssl_certificate_path: "/etc/ssl/certs/mattermost.crt"
+    nginx_ssl_certificate_key_path: "/etc/ssl/private/mattermost.key"
     enable_zabbix_monitor_subpath: true
     zabbix_monitor_subpath: "/zabbix_monitor"
     zabbix_monitor_upstream_host: "127.0.0.1"
