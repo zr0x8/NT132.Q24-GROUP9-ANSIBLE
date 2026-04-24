@@ -1,0 +1,2 @@
+---
+ansible_host: "{{ secret_web_ip }}"
