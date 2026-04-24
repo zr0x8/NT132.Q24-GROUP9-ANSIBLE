@@ -1,51 +1,54 @@
 pipeline {
     agent any
 
-    triggers {
-        GenericTrigger(
-            genericVariables: [
-                [key: 'ACTION', value: '$.action']
-            ],
-            causeString: 'Triggered by Webhook from mattermost fork repo',
-            token: 'mattermost-webhook'
-        )
-    }
-
     environment {
-        REPO_OWNER = "zr0x8"
-        REPO_NAME  = "mattermost"
-        DEPLOY_DIR = "/opt/mattermost"
-        ANSIBLE_HOST_KEY_CHECKING = "False"
+        REPO_URL = 'https://github.com/zr0x8/NT132.Q24-GROUP9-ANSIBLE.git'
+        BRANCH = 'main'
+        INVENTORY_PATH = 'ansible/inventory/hosts.ini'
+        VAULT_CREDENTIALS_ID = 'ansible-vault-password'
+        ANSIBLE_FORCE_COLOR = 'true'
+        PLAYBOOK_MATTERMOST = 'ansible/site.yml'
+        PLAYBOOK_ZABBIX = 'ansible/playbooks/deploy_zabbix.yml'
     }
 
     stages {
-        stage('Fetch Latest Tag') {
+        stage('Checkout Repository') {
             steps {
-                script {
-                    def getTag = """
-                        curl -s https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest | \
-                        jq -r '.tag_name'
-                    """.trim()
+                deleteDir()
+                git branch: "${BRANCH}", url: "${REPO_URL}"
+            }
+        }
 
-                    env.LATEST_TAG = sh(script: getTag, returnStdout: true).trim()
+        stage('Preflight') {
+            steps {
+                sh '''
+                    set -e
+                    command -v ansible-playbook >/dev/null 2>&1
+                    test -f "${INVENTORY_PATH}"
+                '''
+            }
+        }
 
-                    if (env.LATEST_TAG == "null" || env.LATEST_TAG == "") {
-                        error "Không tìm thấy release tag phù hợp trên GitHub!"
-                    }
-                    echo "Found latest tag: ${env.LATEST_TAG}"
-                }
+        stage('Syntax Check') {
+            steps {
+                sh '''
+                    set -e
+                                        ansible-playbook -i "${INVENTORY_PATH}" "${PLAYBOOK_MATTERMOST}" --syntax-check
+                                        ansible-playbook -i "${INVENTORY_PATH}" "${PLAYBOOK_ZABBIX}" --syntax-check
+                '''
             }
         }
 
         stage('Deploy via Ansible') {
             steps {
-                withCredentials([string(credentialsId: 'ansible-vault-pass', variable: 'VAULT_PASS')]) {
+                                withCredentials([string(credentialsId: "${VAULT_CREDENTIALS_ID}", variable: 'VAULT_PASS')]) {
                     sh '''
-                        echo "$VAULT_PASS" > .vault_pass.txt
-                        ansible-playbook -i ansible/inventory/hosts.ini \
-                            --vault-password-file .vault_pass.txt \
-                            -e "image_tag=${LATEST_TAG}" \
-                            ansible/site.yml
+                        set -e
+                        VAULT_FILE="${WORKSPACE}/.vault_pass"
+                        printf '%s' "${VAULT_PASS}" > "${VAULT_FILE}"
+                        chmod 600 "${VAULT_FILE}"
+                                                ansible-playbook -i "${INVENTORY_PATH}" "${PLAYBOOK_MATTERMOST}" --vault-password-file "${VAULT_FILE}"
+                                                ansible-playbook -i "${INVENTORY_PATH}" "${PLAYBOOK_ZABBIX}" --vault-password-file "${VAULT_FILE}"
                     '''
                 }
             }
@@ -54,9 +57,14 @@ pipeline {
 
     post {
         always {
+            sh 'rm -f "${WORKSPACE}/.vault_pass" || true'
             deleteDir()
         }
-        success { echo 'Deploy thành công phiên bản mới nhất!' }
-        failure { echo 'Deploy thất bại, kiểm tra log API hoặc kết nối Ansible.' }
+        success {
+            echo 'Deploy thanh cong.'
+        }
+        failure {
+            echo 'Deploy that bai. Kiem tra log Jenkins va Ansible output.'
+        }
     }
 }
