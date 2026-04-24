@@ -8,7 +8,7 @@ pipeline {
         VAULT_CREDENTIALS_ID = 'ansible-vault-pass'
         ANSIBLE_FORCE_COLOR = 'true'
         PLAYBOOK_MATTERMOST = 'ansible/site.yml'
-        PLAYBOOK_ZABBIX = 'ansible/playbooks/deploy_zabbix.yml'
+        PLAYBOOK_ZABBIX = 'ansible/deploy_zabbix.yml'
     }
 
     stages {
@@ -33,22 +33,22 @@ pipeline {
             steps {
                 sh '''
                     set -e
-                                        ansible-playbook -i "${INVENTORY_PATH}" "${PLAYBOOK_MATTERMOST}" --syntax-check
-                                        ansible-playbook -i "${INVENTORY_PATH}" "${PLAYBOOK_ZABBIX}" --syntax-check
+                    ansible-playbook -i "${INVENTORY_PATH}" "${PLAYBOOK_MATTERMOST}" --syntax-check
+                    ansible-playbook -i "${INVENTORY_PATH}" "${PLAYBOOK_ZABBIX}" --syntax-check
                 '''
             }
         }
 
         stage('Deploy via Ansible') {
             steps {
-                                withCredentials([string(credentialsId: "${VAULT_CREDENTIALS_ID}", variable: 'VAULT_PASS')]) {
+                withCredentials([string(credentialsId: "${VAULT_CREDENTIALS_ID}", variable: 'VAULT_PASS')]) {
                     sh '''
                         set -e
                         VAULT_FILE="${WORKSPACE}/.vault_pass"
                         printf '%s' "${VAULT_PASS}" > "${VAULT_FILE}"
                         chmod 600 "${VAULT_FILE}"
-                                                ansible-playbook -i "${INVENTORY_PATH}" "${PLAYBOOK_MATTERMOST}" --vault-password-file "${VAULT_FILE}"
-                                                ansible-playbook -i "${INVENTORY_PATH}" "${PLAYBOOK_ZABBIX}" --vault-password-file "${VAULT_FILE}"
+                        ansible-playbook -i "${INVENTORY_PATH}" "${PLAYBOOK_MATTERMOST}" --vault-password-file "${VAULT_FILE}"
+                        ansible-playbook -i "${INVENTORY_PATH}" "${PLAYBOOK_ZABBIX}" --vault-password-file "${VAULT_FILE}"
                     '''
                 }
             }
