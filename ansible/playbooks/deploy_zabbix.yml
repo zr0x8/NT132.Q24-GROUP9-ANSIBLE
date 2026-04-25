@@ -23,7 +23,7 @@
       import_role:
         name: ../roles/zabbix_agent
 
-- name: Configure web VM subpath — reverse proxy tới control node
+- name: Configure web VM subpath - reverse proxy toi control node
   hosts: web
   become: yes
   gather_facts: yes
