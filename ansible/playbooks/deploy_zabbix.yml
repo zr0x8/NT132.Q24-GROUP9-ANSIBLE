@@ -1,18 +1,4 @@
 ---
-- name: Ensure jenkins sudoers on control node
-  hosts: localhost
-  become: no
-  gather_facts: no
-  tasks:
-    - name: Allow jenkins NOPASSWD sudo
-      lineinfile:
-        path: /etc/sudoers.d/jenkins
-        line: "jenkins ALL=(ALL) NOPASSWD:ALL"
-        create: yes
-        mode: '0440'
-      become: yes
-      become_method: sudo
-
 - name: Deploy Zabbix server on control node
   hosts: control
   become: yes
