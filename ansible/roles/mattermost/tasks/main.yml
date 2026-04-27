@@ -87,6 +87,7 @@
   community.docker.docker_image:
     name: "{{ mattermost_docker_image }}:{{ image_tag | default('latest') }}"
     source: pull
+    force_source: true
 
 - name: Run Mattermost container
   community.docker.docker_container:
@@ -94,6 +95,8 @@
     image: "{{ mattermost_docker_image }}:{{ image_tag | default('latest') }}"
     state: started
     restart_policy: always
+    image_name_mismatch: recreate
+    recreate: true
     ports:
       - "{{ mattermost_port }}:{{ mattermost_port }}"
     volumes:
