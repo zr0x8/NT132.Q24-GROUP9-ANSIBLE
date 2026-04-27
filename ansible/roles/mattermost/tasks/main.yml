@@ -79,6 +79,10 @@
     group: "2000"
   notify: Restart Mattermost Container
 
+- name: Display Mattermost Docker image information
+  debug:
+    msg: "Pulling Mattermost Docker image: {{ mattermost_docker_image }}:{{ image_tag | default('latest') }}"
+
 - name: Pull Mattermost Docker image
   community.docker.docker_image:
     name: "{{ mattermost_docker_image }}:{{ image_tag | default('latest') }}"
