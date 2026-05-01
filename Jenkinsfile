@@ -6,7 +6,8 @@ pipeline {
         BRANCH = 'main'
         INVENTORY_PATH = 'ansible/inventory/hosts.ini'
         VAULT_CREDENTIALS_ID = 'ansible-vault-pass'
-        ANSIBLE_FORCE_COLOR = 'true'
+        ANSIBLE_FORCE_COLOR = 'false'
+        ANSIBLE_NOCOLOR = 'true'
         PLAYBOOK_MATTERMOST = 'ansible/site.yml'
         PLAYBOOK_ZABBIX = 'ansible/deploy_zabbix.yml'
         EXTRA_VARS_ALL = '-e @ansible/group_vars/all/secrets.yml -e @ansible/group_vars/all/secrets_zabbix.yml'
@@ -48,8 +49,8 @@ pipeline {
                         VAULT_FILE="${WORKSPACE}/.vault_pass"
                         printf '%s' "${VAULT_PASS}" > "${VAULT_FILE}"
                         chmod 600 "${VAULT_FILE}"
-                        ansible-playbook -i "${INVENTORY_PATH}" "${PLAYBOOK_MATTERMOST}" ${EXTRA_VARS_ALL} --vault-password-file "${VAULT_FILE}"
-                        ansible-playbook -i "${INVENTORY_PATH}" "${PLAYBOOK_ZABBIX}" ${EXTRA_VARS_ALL} --vault-password-file "${VAULT_FILE}"
+                        ansible-playbook -v -i "${INVENTORY_PATH}" "${PLAYBOOK_MATTERMOST}" ${EXTRA_VARS_ALL} --vault-password-file "${VAULT_FILE}"
+                        ansible-playbook -v -i "${INVENTORY_PATH}" "${PLAYBOOK_ZABBIX}" ${EXTRA_VARS_ALL} --vault-password-file "${VAULT_FILE}"
                     '''
                 }
             }
