@@ -9,6 +9,15 @@
   apt:
     deb: /tmp/zabbix-release.deb
 
+- name: Debug apt-get update
+  command: apt-get update
+  register: debug_apt
+  ignore_errors: yes
+
+- name: Show apt-get update output
+  debug:
+    var: debug_apt
+
 - name: Install zabbix agent2
   apt:
     name: zabbix-agent2

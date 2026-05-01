@@ -1,4 +1,11 @@
 ---
+- name: Force apt to use IPv4 to prevent hanging
+  copy:
+    dest: /etc/apt/apt.conf.d/99force-ipv4
+    content: |
+      Acquire::ForceIPv4 "true";
+    mode: "0644"
+
 - name: Install unattended-upgrades
   apt:
     name:
