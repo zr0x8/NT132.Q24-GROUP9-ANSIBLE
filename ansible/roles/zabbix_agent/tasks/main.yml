@@ -14,6 +14,7 @@
     name: zabbix-agent2
     state: present
     update_cache: yes
+    dpkg_options: 'force-confdef,force-confold'
 
 - name: Configure zabbix passive server endpoint
   lineinfile:
