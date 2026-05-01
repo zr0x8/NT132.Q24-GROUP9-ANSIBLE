@@ -1,0 +1,45 @@
+---
+- name: Reset UFW to defaults
+  ufw:
+    state: reset
+
+- name: Set default incoming policy to deny
+  ufw:
+    direction: incoming
+    policy: deny
+
+- name: Set default outgoing policy to allow
+  ufw:
+    direction: outgoing
+    policy: allow
+
+- name: Allow SSH from Control Node only (managed nodes)
+  ufw:
+    rule: allow
+    src: "10.148.0.2"
+    port: "22"
+    proto: tcp
+    comment: "SSH from Control Node"
+  when: "'control' not in group_names"
+
+- name: Allow SSH from any IP (Control Node - protected by Fail2ban)
+  ufw:
+    rule: allow
+    port: "22"
+    proto: tcp
+    comment: "SSH from any - protected by Fail2ban"
+  when: "'control' in group_names"
+
+- name: Apply node-specific firewall rules
+  ufw:
+    rule: "{{ item.rule | default('allow') }}"
+    src: "{{ item.src | default(omit) }}"
+    port: "{{ item.port }}"
+    proto: "{{ item.proto | default('tcp') }}"
+    comment: "{{ item.comment | default('') }}"
+  loop: "{{ firewall_rules | default([]) }}"
+
+- name: Enable UFW
+  ufw:
+    state: enabled
+    logging: "on"

@@ -1,5 +1,5 @@
 ---
-- name: acquiring web's public ip
+- name: Acquiring web's public IP
   hosts: web
   gather_facts: false
   tasks:
@@ -12,23 +12,31 @@
       set_fact:
         web_public_ip: "{{ web_public_ip_response.content }}"
 
-- name: setup db tier
+- name: Applying security enforcement on all nodes
+  hosts: all
+  become: yes
+  roles:
+    - common
+    - ssh_hardening
+    - firewall
+    - fail2ban
+    - auto_updates
+
+- name: Setup DB tier
   hosts: db
   become: yes
   roles:
-    - common
     - postgresql
 
-- name: setup app tier
+- name: Setup App tier
   hosts: app
   become: yes
   roles:
-    - common
     - mattermost
 
-- name: setup web tier
+- name: Setup Web tier
   hosts: web
   become: yes
   roles:
-    - common
     - nginx
+

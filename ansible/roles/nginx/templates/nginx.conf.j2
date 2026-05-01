@@ -10,6 +10,8 @@ upstream zabbix_monitor_backend {
 }
 {% endif %}
 
+limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
+
 server {
     listen 80 default_server;
     server_name {{ nginx_server_name }};
@@ -27,6 +29,17 @@ server {
     ssl_session_cache shared:SSL:10m;
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_prefer_server_ciphers off;
+
+    # --- Security Headers ---
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+
+    # Hide Nginx version
+    server_tokens off;
 
     location ~ /api/v[0-9]+/(users/)?websocket$ {
         proxy_set_header Upgrade $http_upgrade;
@@ -50,6 +63,7 @@ server {
     }
 
     location / {
+        limit_req zone=api burst=20 nodelay;
         client_max_body_size 50M;
         proxy_set_header Connection "";
         proxy_set_header Host $http_host;

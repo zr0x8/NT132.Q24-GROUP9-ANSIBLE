@@ -1,0 +1,11 @@
+# PostgreSQL Client Authentication Configuration File
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+# Local connections for postgres admin
+local   all             postgres                                peer
+
+# SSL connection from App Node only
+hostssl {{ db_name }}    {{ db_user }}    {{ secret_app_ip }}/32  scram-sha-256
+
+# Deny everything else
+host    all             all             0.0.0.0/0               reject

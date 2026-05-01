@@ -2,3 +2,5 @@
 mattermost_port: 3636
 mattermost_user: "mattermost"
 mattermost_group: "mattermost"
+firewall_rules:
+  - { port: "3636", src: "{{ secret_web_ip }}", comment: "Mattermost from Web only" }

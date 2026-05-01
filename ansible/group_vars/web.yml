@@ -7,3 +7,6 @@ enable_zabbix_monitor_subpath: false
 zabbix_monitor_subpath: "/zabbix_monitor"
 zabbix_monitor_upstream_host: "{{ secret_zabbix_monitor_upstream_host }}"
 zabbix_monitor_upstream_port: "{{ secret_zabbix_monitor_upstream_port }}"
+firewall_rules:
+  - { port: "80", comment: "HTTP redirect" }
+  - { port: "443", comment: "HTTPS" }

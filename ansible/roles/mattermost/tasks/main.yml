@@ -106,9 +106,7 @@
       - "{{ mattermost_deploy_dir }}/plugins:/mattermost/plugins"
       - "{{ mattermost_deploy_dir }}/client/plugins:/mattermost/client/plugins"
     user: "2000:2000"
-
-- name: Allow incoming traffic on Mattermost port
-  ufw:
-    rule: allow
-    port: "{{ mattermost_port }}"
-    proto: tcp
+    security_opts:
+      - "no-new-privileges:true"
+    cap_drop: 
+      - ALL
