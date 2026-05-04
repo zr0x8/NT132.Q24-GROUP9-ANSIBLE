@@ -46,33 +46,14 @@
     line: "port = {{ postgres_port }}"
   notify: Restart PostgreSQL
 
-- name: Generate PostgreSQL SSL certificate
-  command: >
-    openssl req -new -x509 -days 3650 -nodes
-    -out /etc/postgresql/{{ postgres_version }}/main/server.crt
-    -keyout /etc/postgresql/{{ postgres_version }}/main/server.key
-    -subj "/CN=db-node"
-  args:
-    creates: /etc/postgresql/{{ postgres_version }}/main/server.crt
-
-- name: Set SSL certificate permissions
-  file:
-    path: "{{ item }}"
-    owner: postgres
-    group: postgres
-    mode: "0600"
-  loop:
-    - /etc/postgresql/{{ postgres_version }}/main/server.crt
-    - /etc/postgresql/{{ postgres_version }}/main/server.key
-
-- name: Enable SSL in postgresql.conf
+- name: Disable SSL in postgresql.conf
   lineinfile:
     path: /etc/postgresql/{{ postgres_version }}/main/postgresql.conf
     regexp: "^#?ssl ="
-    line: "ssl = on"
+    line: "ssl = off"
   notify: Restart PostgreSQL
 
-- name: Configure pg_hba.conf - restrict to App Node IP over SSL
+- name: Configure pg_hba.conf - restrict to App Node IP
   template:
     src: pg_hba.conf.j2
     dest: /etc/postgresql/{{ postgres_version }}/main/pg_hba.conf

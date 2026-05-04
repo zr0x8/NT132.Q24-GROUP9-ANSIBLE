@@ -4,8 +4,8 @@
 # Local connections for postgres admin
 local   all             postgres                                peer
 
-# SSL connection from App Node only
-hostssl {{ db_name }}    {{ db_user }}    {{ secret_app_ip }}/32  scram-sha-256
+# Connection from App Node only
+host    {{ db_name }}    {{ db_user }}    {{ secret_app_ip }}/32  scram-sha-256
 
 # Deny everything else
 host    all             all             0.0.0.0/0               reject
