@@ -71,14 +71,6 @@
 - name: Ensure correct ownership on mattermost directories
   command: chown -R 2000:2000 {{ mattermost_deploy_dir }}
 
-- name: Configure Mattermost
-  template:
-    src: config.json.j2
-    dest: "{{ mattermost_deploy_dir }}/config/config.json"
-    owner: "2000"
-    group: "2000"
-  notify: Restart Mattermost Container
-
 - name: Display Mattermost Docker image information
   debug:
     msg: "Pulling Mattermost Docker image: {{ mattermost_docker_image }}:{{ image_tag | default('latest') }}"
@@ -105,6 +97,13 @@
       - "{{ mattermost_deploy_dir }}/logs:/mattermost/logs"
       - "{{ mattermost_deploy_dir }}/plugins:/mattermost/plugins"
       - "{{ mattermost_deploy_dir }}/client/plugins:/mattermost/client/plugins"
+    env:
+      MM_SERVICESETTINGS_SITEURL: "https://{{ web_host }}"
+      MM_SERVICESETTINGS_LISTENADDRESS: ":{{ mattermost_port }}"
+      MM_TEAMSETTINGS_ENABLEOPENSERVER: "true"
+      MM_TEAMSETTINGS_ENABLEUSERCREATION: "true"
+      MM_SQLSETTINGS_DRIVERNAME: "postgres"
+      MM_SQLSETTINGS_DATASOURCE: "postgres://{{ db_user }}:{{ db_password }}@{{ db_host }}:{{ postgres_port }}/{{ db_name }}?sslmode=disable"
     user: "2000:2000"
     security_opts:
       - "no-new-privileges:true"

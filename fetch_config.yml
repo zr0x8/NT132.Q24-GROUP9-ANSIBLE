@@ -1,0 +1,10 @@
+---
+- name: Fetch config.json from app node
+  hosts: app
+  become: yes
+  tasks:
+    - name: Fetch config.json
+      fetch:
+        src: /opt/mattermost/config/config.json
+        dest: /tmp/fetched_config.json
+        flat: yes

@@ -63,7 +63,7 @@ server {
     }
 
     location / {
-        limit_req zone=api burst=20 nodelay;
+        # limit_req zone=api burst=20 nodelay;
         client_max_body_size 50M;
         proxy_set_header Connection "";
         proxy_set_header Host $http_host;
